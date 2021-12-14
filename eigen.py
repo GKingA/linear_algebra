@@ -2,7 +2,7 @@ import numpy as np
 from numpy.polynomial import Polynomial
 
 
-EPSILON = 1e-5
+EPSILON = 1e-3
 inf = 1e16
 
 
@@ -12,6 +12,11 @@ def check_symmetry(mtx):
 
 def housholder_transformation(mtx):
     pass
+
+
+def print_pairs(values, vectors):
+    for (value, vector) in zip(values, vectors):
+        print(f"{value}: {[v for v in vector]}")
 
 
 def create_strum_polynomial(mtx):
@@ -84,6 +89,51 @@ def qr_decomposition(matrix):
     return Q.T, R
 
 
+def hessenberg_transformation(matrix):
+    # Initialize
+    Z = np.zeros(matrix.shape)
+    F = np.zeros(matrix.shape)
+    Z[0][0] = 1
+    F[0][0] = matrix[0][0]
+    for i in range(len(F)-1):
+        F[i+1][i] = 1
+    for i in range(1, len(Z)):
+        Z[i][1] = matrix[i][0]
+    # Go through columns
+    for i in range(1, len(matrix)):
+        AZ = np.matmul(matrix, Z)
+        # Rows of column
+        for j in range(i+1):
+            F[j][i] = (1 / Z[j][j]) * (AZ[j][i] - sum([F[l][i] * Z[j][l] for l in range(j)]))
+        ZF = np.matmul(Z, F)
+        if i + 1 != len(Z):
+            Z[:, i+1] = (AZ - ZF).T[i]
+    #assert np.all(np.abs(np.matmul(matrix, Z) - np.matmul(Z, F)) < EPSILON)
+    return F, Z
+
+
+def eigenvector_for_hessenberg(F, eigen_value):
+    if eigen_value.dtype == np.complex:
+        y = np.zeros(len(F), dtype=np.complex)
+    else:
+        y = np.zeros(len(F))
+    y[-1] = 1
+    for i in range(len(y)-2, -1, -1):
+        y[i] = eigen_value * y[i+1] - sum([F[i + 1][k] * y[k] for k in range(i, len(y))])
+    #assert np.all(np.abs(eigen_value * y - np.dot(F, y)) <= EPSILON)
+    return y
+
+
+def eigen_vectors_from_hessenberg(F, Z, e_values, matrix):
+    vectors = []
+    for value in e_values:
+        y = eigenvector_for_hessenberg(F, value)
+        e_vector = np.matmul(Z, y)
+        #assert np.all(np.abs(value * e_vector - np.dot(matrix, e_vector)) < EPSILON)
+        vectors.append(e_vector)
+    return vectors
+
+
 def qr_algorithm(matrix):
     matrix0 = matrix
     for i in range(2*len(matrix)**2):
@@ -127,7 +177,7 @@ def rank_one_decomposition(matrix, u_shape, v_shape):
         for j in range(i, len(matrix)):
             U[j][i] = matrix[j][i] - sum([U[j][k] * Vt[k][i] for k in range(i)])
             Vt[i][j] = (1 / U[i][i]) * (matrix[i][j] - sum([U[i][k] * Vt[k][j] for k in range(j)]))
-    assert np.all(np.abs(np.matmul(U, Vt) - matrix) < EPSILON)
+    #assert np.all(np.abs(np.matmul(U, Vt) - matrix) < EPSILON)
     return U, Vt
 
 
@@ -146,5 +196,5 @@ def get_eigenvectors(matrix, e_values):
         for i in range(len(x) - 2, -1, -1):
             x[i] = -sum([Vt[i][j] * x[j] for j in range(i, len(x))])
         xs.append(x)
-        assert np.all(np.abs(e_value * x - np.dot(matrix, x)) < EPSILON)
+        #assert np.all(np.abs(e_value * x - np.dot(matrix, x)) < EPSILON)
     return xs

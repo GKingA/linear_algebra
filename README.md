@@ -6,6 +6,7 @@ so it can be used for educational purposes.
 ## Eigen
 
 QR algorithm to calculate eigenvalues, rank-one-decomposition to calculate eigenvectors.
+Hessenberg transformation for eigenvalue and eigenvector calculation.
 The rank-one-decomposition algorithm can be used to solve a system of linear equations.
 
 Code for counting sign changes as per the Strum theorem. Recursive eigenvalue calculation
