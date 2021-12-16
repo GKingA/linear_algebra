@@ -1,5 +1,4 @@
 import numpy as np
-from eigen import get_eigenvalues
 
 
 def vector_norm(vector, p=2):
@@ -27,4 +26,5 @@ def infinity_norm(matrix):
 
 
 def two_norm(matrix):
+    from eigen import get_eigenvalues
     return np.sqrt(np.max(get_eigenvalues(np.matmul(matrix.T, matrix))))

@@ -1,9 +1,15 @@
 import numpy as np
 from numpy.polynomial import Polynomial
+from norm import vector_norm
 
 
 EPSILON = 1e-3
 inf = 1e16
+
+
+def print_pairs(values, vectors):
+    for (value, vector) in zip(values, vectors):
+        print(f"{value}: {[v for v in vector]}")
 
 
 def check_symmetry(mtx):
@@ -11,12 +17,19 @@ def check_symmetry(mtx):
 
 
 def housholder_transformation(mtx):
-    pass
-
-
-def print_pairs(values, vectors):
-    for (value, vector) in zip(values, vectors):
-        print(f"{value}: {[v for v in vector]}")
+    A = mtx
+    E = np.identity(len(mtx))
+    for i in range(0, len(mtx)-1):
+        c = A[i][i]
+        b = np.sign(-A[i+1, i]) * np.sqrt(np.sum(np.power(A[i+1:, i], 2)))
+        Ae_Ae = np.array([0 for _ in range(i+1)] + [A[i+1][i] - b] + A[i+2:, i].tolist())
+        norm_Ae_Ae = vector_norm(Ae_Ae, 2)
+        u = (1 / norm_Ae_Ae) * Ae_Ae
+        assert np.all(np.matmul(u[:, None].T, E[:, i]) == 0)
+        T = np.identity(len(mtx)) - 2 * np.matmul(u[:, None], u[:, None].T)
+        assert np.all(np.matmul(T, E[:, i]) == E[:, i])
+        A = np.matmul(np.matmul(np.linalg.inv(T), A), T)
+    return A
 
 
 def create_strum_polynomial(mtx):
@@ -59,7 +72,7 @@ def iterative_search_for_root(polynomials, small_end, large_end, no_elements):
 
 def eigen_values(mtx):
     assert check_symmetry(mtx)
-    #mtx = housholder_transformation(mtx)
+    mtx = housholder_transformation(mtx)
     polynomials = create_strum_polynomial(mtx)
     V_neg_inf = sign_changes(polynomials, -inf)
     V_pos_inf = sign_changes(polynomials, inf)
@@ -70,7 +83,7 @@ def eigen_values(mtx):
         roots += iterative_search_for_root(polynomials, -inf, 0, abs(V_neg_inf - V_zero))
     if abs(V_pos_inf - V_zero) > 0:
         roots += iterative_search_for_root(polynomials, inf, 0, abs(V_neg_inf - V_zero))
-    return sorted(roots), np.linalg.eigvals(mtx)
+    return list(set(sorted(roots)))
 
 
 def qr_decomposition(matrix):

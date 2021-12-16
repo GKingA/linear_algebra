@@ -10,7 +10,8 @@ Hessenberg transformation for eigenvalue and eigenvector calculation.
 The rank-one-decomposition algorithm can be used to solve a system of linear equations.
 
 Code for counting sign changes as per the Strum theorem. Recursive eigenvalue calculation
-based on the Strum theorem over tridiagonal matrices.
+based on the Strum theorem over tridiagonal matrices as well as 
+the Householder transformation for symmetrical matrices into tridiagonal form.
 
 ## Norm
 
